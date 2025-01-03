@@ -1,6 +1,6 @@
 from calculators.algebra_calc import AlgebraCalc
 from calculators.geom_calc import GeomCalc
-# from calculators.simplex_calc import SymplexCalc  # Uncomment when ready
+from calculators.simplex_calc import SimplexCalc
 
 
 class Calculators:
@@ -37,12 +37,6 @@ class Calculators:
             else:
                 print("Invalid choice. Please try again.")
 
-
-# Simplex Calculator Class
-class SimplexCalc:
-    def menu(self):
-        print("\n[Simplex Calculator functionalities go here]")
-        # Implement functionalities similar to AlgebraCalc
 
 # Run the program
 if __name__ == "__main__":
