@@ -1,3 +1,4 @@
+# ExampleConfigFiles/nade.txt
 class GeomCalc:
     def menu(self):
         while True:
