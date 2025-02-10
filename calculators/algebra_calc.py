@@ -218,7 +218,22 @@ class AlgebraCalc:
 
     
     def evaluate_polynomial(self):
-        print("Functionality: Evaluate polynomial by given x")
+        poly = self.input_polynomial("Enter the polynomial you want to evaluate:")
+        x_str = input("Enter the value of x (can be e.g. 2, 1/2, 2.5) >> ")
+
+        try:
+            x_val = float(eval(x_str))
+        except Exception:
+            print("Invalid input. Please enter a valid number for x.")
+            return
+        
+        result = 0.0
+        for degree, coeff in poly.items():
+            result += coeff * (x_val ** degree)
+        #ако ст-та е много близо до цяло число я закръгляме
+        if abs(result - round(result)) < 1e-14:
+            result = int(round(result))
+        print(f"P({x_val}) = {result}")
     
     def gcd_of_polynomials(self):
         print("Functionality: Find GCD of two polynomials")
