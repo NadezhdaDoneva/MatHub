@@ -12,7 +12,7 @@ class AlgebraCalc:
             print("6. Find the value of polynomial by given x")
             print("7. Find GCD of two polynomials")
             print("8. Vieta's formulas")
-            print("9. Polynomial decomposition and finding rational roots")
+            print("9. Polynomial decomposition")
             print("10. Return to Main Menu")
             
             choice = input("Enter your choice (1-10): ")
@@ -40,6 +40,7 @@ class AlgebraCalc:
             else:
                 print("Invalid choice. Please try again.")
 
+    #HELPER FUNCTIONS
     def format_polynomial(self, polynomial: dict) -> str:
         """Връща стринг от полинома, който му е бил подаден, форматиран првилно"""
         # Празен речник
@@ -145,8 +146,111 @@ class AlgebraCalc:
 
         remainder = dividend
         return quotient, remainder
-
     
+    def int_divisors(self, num):
+        """Return all integer divisors of 'num', including negative ones."""
+        num = abs(num)
+        divisors = []
+        for i in range(1, num + 1):
+            if num % i == 0:
+                divisors.append(i)
+                divisors.append(-i)
+        # ensure uniqueness: 
+        return list(set(divisors))
+    
+    def evaluate_poly(self, poly: dict, x_val):
+        result = 0.0
+        for degree, coeff in poly.items():
+            result += coeff * (x_val ** degree)
+        return result
+    
+    def is_zero_poly(self, poly):
+        """Check if polynomial is effectively 0 (all near-zero coefficients)."""
+        if not poly:
+            return True
+        return all(abs(c) < 1e-14 for c in poly.values())
+
+    def is_constant_poly(self, poly: dict) -> bool:
+        """Check if polynomial is just a nonzero constant (degree 0)."""
+        # clean up
+        if not poly:
+            return True  # or it's zero
+        if len(poly) == 1 and 0 in poly:
+            # Only key is 0 => a constant
+            return True
+        return False
+    
+    def clean_zero_terms(self, poly: dict):
+        """Remove near-zero coefficient terms from a polynomial dict."""
+        to_delete = []
+        for d, c in poly.items():
+            if abs(c) < 1e-14:
+                to_delete.append(d)
+        for d in to_delete:
+            del poly[d]
+    
+    def find_and_factor_out_one_root(self, poly: dict, roots_list: list) -> bool:
+        """
+        Attempts to find a single rational root of 'poly'. 
+        If found, factors out (x - root) (possibly multiple times),
+        appends 'root' to 'roots_list' for each repetition,
+        and returns True.
+        If no root is found, returns False.
+        """
+        # Clean up zero coef
+        self.clean_zero_terms(poly)
+        if not poly or all(abs(c) < 1e-14 for c in poly.values()):
+            return False
+        
+        # Leading degree and coefficient
+        leading_degree = max(poly.keys())
+        leading_coeff = poly[leading_degree]
+        if abs(leading_coeff) < 1e-14:
+            # Not valid
+            return False
+        # Constant term
+        const_coeff = poly.get(0, 0.0)
+        # If the polynomial is of degree 0
+        if leading_degree == 0:
+            return False
+        # Generate candidate rational roots using the Rational Root Theorem:
+        # possible roots = (divisors of const_coeff) / (divisors of leading_coeff)
+        possible_p = self.int_divisors(int(round(const_coeff)))  # divisors of a0
+        possible_q = self.int_divisors(int(round(leading_coeff))) # divisors of a_n
+        tested_roots = set()  # to avoid re-testing the same candidate
+        
+        for p in possible_p:
+            for q in possible_q:
+                if q == 0:
+                    continue
+                candidate = p / q
+                if candidate in tested_roots:
+                    continue
+                tested_roots.add(candidate)
+                val = self.evaluate_poly(poly, candidate)
+                if abs(val) < 1e-14:
+                    # It's a root, Factor out (x - candidate)
+                    # We do polynomial division in a loop while candidate is indeed a root
+                    while True:
+                        # Check again in case of repeated root
+                        val_check = self.evaluate_poly(poly, candidate)
+                        if abs(val_check) < 1e-14:
+                            # Factor out
+                            divisor = {1: 1.0, 0: -candidate}  # (x - candidate)
+                            quotient, remainder = self.polynomial_div(poly, divisor)
+                            # Update poly to the quotient
+                            poly.clear()
+                            poly.update(quotient)
+                            
+                            roots_list.append(candidate)
+                        else:
+                            # candidate no longer divides
+                            break
+                    return True  # We found at least one root, so return
+        # no root found amongst the candid
+        return False
+    
+    #MAIN LOGIC OF ALGEBRA CALC
     def add_polynomials(self):
         print("\nAdding Two Polynomials")
         poly1 = self.input_polynomial("Enter the first polynomial:")
@@ -242,17 +346,12 @@ class AlgebraCalc:
             print("Invalid input. Please enter a valid number for x.")
             return
         
-        result = 0.0
-        for degree, coeff in poly.items():
-            result += coeff * (x_val ** degree)
-        #ако ст-та е много близо до цяло число я закръгляме
-        if abs(result - round(result)) < 1e-14:
-            result = int(round(result))
+        result = self.evaluate_poly(poly, x_val)
         print(f"P({x_val}) = {result}")
     
-    # We will be using Euclidean algorithm. gcd(A,B)=gcd(B,R), where R is the reminder of A / B. 
-    # We stop when one of the polynomials is 0. Than the other is the GCD
     def gcd_of_polynomials(self):
+        # We will be using Euclidean algorithm. gcd(A,B)=gcd(B,R), where R is the reminder of A / B. 
+        # We stop when one of the polynomials is 0. Than the other is the GCD
         poly1 = self.input_polynomial("Enter the first polynomial: ")
         poly2 = self.input_polynomial("Enter the second polynomial: ")
         
@@ -322,8 +421,42 @@ class AlgebraCalc:
                 description = f"Sum of products of the roots taken {k} at a time"            
             print(f"  - {description} (k={k}): {vieta_value}")
         print()
-
-
     
     def decompose_polynomial(self):
-        print("Functionality: Polynomial decomposition and finding rational roots")
+        poly = self.input_polynomial("Enter the polynomial you want to factor:")
+        if not poly or all(abs(c) < 1e-14 for c in poly.values()):
+            print("No factorization.")
+            return
+        # Find all rational roots and factor them out
+        # We'll store found roots in a list, e.g. [1, 1, -2] if (x-1)^2*(x+2) are factors, etc.
+        roots = []
+        current_poly = poly.copy()
+        while True:
+            root_found = self.find_and_factor_out_one_root(current_poly, roots)
+            if not root_found:
+                # no new root found => break out
+                break        
+        # Print
+        if roots:
+            # Build a factor string from the found roots: (x - r1)(x - r2)...
+            factor_str = ""
+            for r in roots:
+                # watch the sign
+                if r >= 0:
+                    factor_str += f"(x - {r})"
+                else:
+                    factor_str += f"(x + {-r})"
+            leftover_str = self.format_polynomial(current_poly)
+            if self.is_zero_poly(current_poly):
+                # If leftover is 0 or constant 0 => the entire polynomial is factored
+                print(f"\nFactorization over rationals: {factor_str}")
+            elif self.is_constant_poly(current_poly):
+                # If leftover is a nonzero constant, we can factor it out or just show it
+                print(f"\nFactorization over rationals: {factor_str} * ({leftover_str})")
+            else:
+                # leftover has degree >= 1 but no further rational roots
+                print(f"\nPartial factorization over rationals: {factor_str} * ({leftover_str})")
+        else:
+            print("\nNo rational roots were found.")
+            print("Polynomial remains unfactored over rationals:")
+            print(self.format_polynomial(current_poly))
