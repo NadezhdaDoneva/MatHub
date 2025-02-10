@@ -251,73 +251,90 @@ class AlgebraCalc:
         return False
     
     #MAIN LOGIC OF ALGEBRA CALC
+    def add_polynomials_logic(self, poly1, poly2):
+        """Adds two polynomials (dict: degree -> coeff) and returns a new dict with the result."""
+        result = {}
+        for degree, coeff in poly1.items():
+            result[degree] = result.get(degree, 0) + coeff
+        for degree, coeff in poly2.items():
+            result[degree] = result.get(degree, 0) + coeff
+        return result
+
     def add_polynomials(self):
         print("\nAdding Two Polynomials")
         poly1 = self.input_polynomial("Enter the first polynomial:")
         poly2 = self.input_polynomial("Enter the second polynomial:")
-
         # Add polynomials
-        result = {}
-        for degree, coeff in poly1.items():
-            result[degree] = coeff
-        for degree, coeff in poly2.items():
-            result[degree] = result.get(degree, 0) + coeff
-
+        result_poly = self.add_polynomials_logic(poly1, poly2)
         # Format result
-        result_str = self.format_polynomial(result)
+        result_str = self.format_polynomial(result_poly)
         print(f"Resulting Polynomial: {result_str}")
 
+    def subtract_polynomials_logic(self, poly1: dict, poly2: dict) -> dict:
+        """ Subtract two polynomials: poly1 - poly2. Returns a dict: degree -> coefficient. """
+        result = {}
+        for degree, coeff in poly1.items():
+            result[degree] = result.get(degree, 0) + coeff
+        for degree, coeff in poly2.items():
+            result[degree] = result.get(degree, 0) - coeff
+        return result
     
     def subtract_polynomials(self):
         print("\nSubtracting Two Polynomials")
         poly1 = self.input_polynomial("Enter the first polynomial:")
         poly2 = self.input_polynomial("Enter the second polynomial:")
-
         # Subtract polynomials
-        result = {}
-        for degree, coeff in poly1.items():
-            result[degree] = coeff
-        for degree, coeff in poly2.items():
-            result[degree] = result.get(degree, 0) - coeff
-
+        result_dict = self.subtract_polynomials_logic(poly1, poly2)
         # Format result
-        result_str = self.format_polynomial(result)
+        result_str = self.format_polynomial(result_dict)
         print(f"Resulting Polynomial: {result_str}")
-    
-    def multiply_polynomials(self):
-        print("\nMultiplying Two Polynomials")
-        poly1 = self.input_polynomial("Enter the first polynomial:")
-        poly2 = self.input_polynomial("Enter the second polynomial:")
 
-        # Multiply polynomials
+    def multiply_polynomials_logic(self, poly1: dict, poly2: dict) -> dict:
+        """ Multiply two polynomials: poly1 * poly2. Returns a dict: degree -> coefficient."""
         result = {}
         for degree1, coeff1 in poly1.items():
             for degree2, coeff2 in poly2.items():
                 new_degree = degree1 + degree2
                 new_coeff = coeff1 * coeff2
                 result[new_degree] = result.get(new_degree, 0) + new_coeff
-
+        return result
+    
+    def multiply_polynomials(self):
+        print("\nMultiplying Two Polynomials")
+        poly1 = self.input_polynomial("Enter the first polynomial:")
+        poly2 = self.input_polynomial("Enter the second polynomial:")
+        # Multiply polynomials
+        result_dict = self.multiply_polynomials_logic(poly1, poly2)
         # Format result
-        result_str = self.format_polynomial(result)
+        result_str = self.format_polynomial(result_dict)
         print(f"Resulting Polynomial: {result_str}")
+
+    def divide_polynomials_logic(self, poly1: dict, poly2: dict):
+        """ Returns (quotient_dict, remainder_dict) after dividing poly1 by poly2"""
+        if not poly2 or all(abs(c) < 1e-14 for c in poly2.values()):
+            return None, None  #division by zero
+        quotient, remainder = self.polynomial_div(poly1, poly2)
+        return quotient, remainder
     
     def divide_polynomials(self):
         poly1 = self.input_polynomial("Enter the dividend polynomial:")
         poly2 = self.input_polynomial("Enter the divisor polynomial:")
-        quotient, remainder = self.polynomial_div(poly1, poly2)
-
-        # Ако 'poly2' е нулев (или близък до нулев) полином, polynomial_div ще върне ( {}, dividend )
-        # и тогава това означава делене на 0
+        quotient, remainder = self.divide_polynomials_logic(poly1, poly2)
         if not poly2 or all(abs(c) < 1e-14 for c in poly2.values()):
             print("Error: Division by zero polynomial is not allowed.")
             return
-
         quotient_str = self.format_polynomial(quotient)
         remainder_str = self.format_polynomial(remainder)
         print(f"Quotient: {quotient_str}")
         print(f"Remainder: {remainder_str}")
 
-    
+    def multiply_polynomial_by_scalar_logic(self, poly: dict, scalar: float) -> dict:
+        """ Returns a new polynomial dict with every coefficient multiplied by 'scalar'."""
+        result = {}
+        for degree, coeff in poly.items():
+            result[degree] = coeff * scalar
+        return result
+
     def multiply_polynomial_by_int(self):
         poly = self.input_polynomial("Enter the polynomial you want to multiply:")
         scalar_str = input("Enter the rational (or integer) scalar you want to multiply by >> ")
@@ -329,99 +346,112 @@ class AlgebraCalc:
             return
         
         # Умножаваме всеки коефициент по скалара
-        result = {}
-        for degree, coeff in poly.items():
-            result[degree] = coeff * scalar
-        result_str = self.format_polynomial(result)
+        result_dict = self.multiply_polynomial_by_scalar_logic(poly, scalar)
+        result_str = self.format_polynomial(result_dict)
         print(f"Resulting Polynomial: {result_str}")
 
-    
+    def evaluate_polynomial_logic(self, poly: dict, x_val: float) -> float:
+        """ Evaluates the polynomial dict at x_val and returns the result."""
+        val = self.evaluate_poly(poly, x_val)
+        #round near-integers:
+        if abs(val - round(val)) < 1e-14:
+            val = int(round(val))
+        return val
+
     def evaluate_polynomial(self):
         poly = self.input_polynomial("Enter the polynomial you want to evaluate:")
         x_str = input("Enter the value of x (can be e.g. 2, 1/2, 2.5) >> ")
-
         try:
             x_val = float(eval(x_str))
         except Exception:
             print("Invalid input. Please enter a valid number for x.")
             return
-        
-        result = self.evaluate_poly(poly, x_val)
+        result = self.evaluate_polynomial_logic(poly, x_val)
         print(f"P({x_val}) = {result}")
-    
-    def gcd_of_polynomials(self):
-        # We will be using Euclidean algorithm. gcd(A,B)=gcd(B,R), where R is the reminder of A / B. 
-        # We stop when one of the polynomials is 0. Than the other is the GCD
-        poly1 = self.input_polynomial("Enter the first polynomial: ")
-        poly2 = self.input_polynomial("Enter the second polynomial: ")
-        
-        # If both poly are zero, gcd is 0.
+
+    def gcd_of_polynomials_logic(self, poly1: dict, poly2: dict) -> dict:
+        """We will be using Euclidean algorithm. gcd(A,B)=gcd(B,R), where R is the reminder of A / B. We stop when one of the polynomials is 0. Than the other is the GCD"""
+        # If both are zero:
         if (not poly1 or all(abs(c) < 1e-14 for c in poly1.values())) and \
         (not poly2 or all(abs(c) < 1e-14 for c in poly2.values())):
-            print("Both polynomials are 0; GCD: 0")
-            return
-        
-        # The Euclidean loop
-        a = poly1
-        b = poly2
-        while True:            
+            return {}  # GCD is 0 => empty polynomial
+
+        a = poly1.copy()
+        b = poly2.copy()
+        while True:
             if not b or all(abs(c) < 1e-14 for c in b.values()):
-                # b is the zero polynomial => gcd is a
-                gcd_poly = a
-                gcd_str = self.format_polynomial(gcd_poly)
-                print(f"GCD: {gcd_str}")
-                return
-            
-            # else, compute remainder of a / b
+                # b is zero => gcd is a
+                return a
             _, remainder = self.polynomial_div(a, b)
-            a = b
-            b = remainder
+            a, b = b, remainder
     
-    def vietas_formulas(self):
-        poly = self.input_polynomial("Enter the polynomial (degree >= 1) to apply Vieta's formulas:")
+    def gcd_of_polynomials(self):
+        poly1 = self.input_polynomial("Enter the first polynomial: ")
+        poly2 = self.input_polynomial("Enter the second polynomial: ")
+        gcd_poly = self.gcd_of_polynomials_logic(poly1, poly2)
+        if not gcd_poly:
+            print("GCD: 0")
+        else:
+            gcd_str = self.format_polynomial(gcd_poly)
+            print(f"GCD: {gcd_str}")
+
+    def vietas_formulas_logic(self, poly: dict):
+        """ Returns a dict mapping k -> the sum of products of the roots taken k at a time for k in [1..n], where n = max degree. """
         if not poly or max(poly.keys()) == 0:
-            print("The polynomial has degree 0. Vieta's formulas are not applicable.")
-            return
-        
-        # Find the highest degree n
+            return None
         n = max(poly.keys())
-        # Build a coefficient list: a_n, a_{n-1}, ..., a_0
-        # For degrees that don't appear in the dictionary, the coefficient is 0.
-        # We'll store them in a list such that coeffs[i] = a_i, 
-        # so that a_n = coeffs[n], a_0 = coeffs[0].
         coeffs = []
         for deg in range(n + 1):
             coeffs.append(poly.get(deg, 0.0))
-        
-        # Leading coefficient a_n
         a_n = coeffs[n]
         if abs(a_n) < 1e-14:
-            print("The leading coefficient is 0 (or near 0). Please re-check your polynomial.")
+            return None
+        
+        vieta_dict = {}
+        # for k in 1..n:
+        for k in range(1, n + 1):
+            a_n_minus_k = coeffs[n - k] if (n - k) >= 0 else 0
+            sign_factor = (-1) ** k
+            value = sign_factor * (a_n_minus_k / a_n)
+            # optional rounding
+            if abs(value - round(value)) < 1e-14:
+                value = int(round(value))
+            vieta_dict[k] = value
+        return vieta_dict
+
+    def vietas_formulas(self):
+        poly = self.input_polynomial("Enter the polynomial (degree >= 1) to apply Vieta's formulas:")
+        vieta_dict = self.vietas_formulas_logic(poly)
+        if vieta_dict is None:
+            print("The polynomial is degree 0 or leading coeff near 0. Not applicable.")
             return
-        # Print out each Vieta’s relation
-        # For k from 1 to n, the sum of products of the roots taken k at a time is:
-        # (-1)^k * (a_{n-k} / a_n)
-        # We can loop k in [1..n].
+        
+        n = max(poly.keys())
         print(f"Polynomial degree: {n}\n")
         print("Vieta's Formulas relations:")
         for k in range(1, n + 1):
-            # a_{n-k} means coeffs[n-k]
-            a_n_minus_k = coeffs[n - k] if (n - k) >= 0 else 0
-            # sign factor is (-1)^k
-            sign_factor = (-1)**k
-            # value of the sum/product
-            vieta_value = sign_factor * (a_n_minus_k / a_n)
-            if abs(vieta_value - round(vieta_value)) < 1e-14:
-                vieta_value = int(round(vieta_value))
+            value = vieta_dict[k]
             if k == 1:
                 description = "Sum of the roots"
             elif k == n:
                 description = f"Product of all {n} roots"
             else:
-                description = f"Sum of products of the roots taken {k} at a time"            
-            print(f"  - {description} (k={k}): {vieta_value}")
+                description = f"Sum of products of the roots taken {k} at a time"
+            print(f"  - {description} (k={k}): {value}")
         print()
     
+    def decompose_polynomial_logic(self, poly: dict):
+        """ Returns (roots_list, leftover_poly) after factoring out all rational roots. If no rational root is found, roots_list is empty and leftover_poly = original. """
+        if not poly or all(abs(c) < 1e-14 for c in poly.values()):
+            return [], {}
+        roots = []
+        current_poly = poly.copy()
+        while True:
+            root_found = self.find_and_factor_out_one_root(current_poly, roots)
+            if not root_found:
+                break
+        return roots, current_poly
+
     def decompose_polynomial(self):
         poly = self.input_polynomial("Enter the polynomial you want to factor:")
         if not poly or all(abs(c) < 1e-14 for c in poly.values()):
@@ -429,14 +459,7 @@ class AlgebraCalc:
             return
         # Find all rational roots and factor them out
         # We'll store found roots in a list, e.g. [1, 1, -2] if (x-1)^2*(x+2) are factors, etc.
-        roots = []
-        current_poly = poly.copy()
-        while True:
-            root_found = self.find_and_factor_out_one_root(current_poly, roots)
-            if not root_found:
-                # no new root found => break out
-                break        
-        # Print
+        roots, current_poly = self.decompose_polynomial_logic(poly)
         if roots:
             # Build a factor string from the found roots: (x - r1)(x - r2)...
             factor_str = ""
