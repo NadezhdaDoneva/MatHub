@@ -108,6 +108,45 @@ class AlgebraCalc:
                 return self.input_polynomial(prompt)  # Restart input on invalid entry
         return polynomial
     
+    def polynomial_div(self, dividend: dict, divisor: dict):
+        """ Returns (quotient, remainder) of dividend / divisor using polynomial long division"""
+        dividend = dividend.copy()
+        divisor = divisor.copy()
+
+        # If the divisor is the zero polynomial
+        if not divisor or all(abs(c) < 1e-14 for c in divisor.values()):
+            return {}, dividend  # quotient={}, remainder=dividend
+        
+        quotient = {}
+        # While degree(dividend) >= degree(divisor) and dividend is not the zero poly:
+        while dividend and max(dividend.keys()) >= max(divisor.keys()):
+            # Leading term of dividend
+            deg_dvd = max(dividend.keys())
+            coeff_dvd = dividend[deg_dvd]
+            # Leading term of divisor
+            deg_dvs = max(divisor.keys())
+            coeff_dvs = divisor[deg_dvs]
+            # Compute the factor that will cancel out the leading term of dividend
+            deg_diff = deg_dvd - deg_dvs
+            coeff_factor = coeff_dvd / coeff_dvs
+            # Add that factor to the quotient
+            quotient[deg_diff] = quotient.get(deg_diff, 0) + coeff_factor
+            # Subtract (divisor * factor) from dividend
+            for d, c in divisor.items():
+                # new term degree
+                new_deg = d + deg_diff
+                # multiply c by factor
+                sub_val = c * coeff_factor
+                # update the dividend
+                dividend[new_deg] = dividend.get(new_deg, 0) - sub_val
+                # if near 0, remove
+                if abs(dividend[new_deg]) < 1e-14:
+                    del dividend[new_deg]
+
+        remainder = dividend
+        return quotient, remainder
+
+    
     def add_polynomials(self):
         print("\nAdding Two Polynomials")
         poly1 = self.input_polynomial("Enter the first polynomial:")
@@ -159,45 +198,21 @@ class AlgebraCalc:
         print(f"Resulting Polynomial: {result_str}")
     
     def divide_polynomials(self):
-        print("\nDividing Two Polynomials")
         poly1 = self.input_polynomial("Enter the dividend polynomial:")
         poly2 = self.input_polynomial("Enter the divisor polynomial:")
+        quotient, remainder = self.polynomial_div(poly1, poly2)
 
-        # Ensure divisor is not zero
-        if all(coeff == 0 for coeff in poly2.values()):
+        # Ако 'poly2' е нулев (или близък до нулев) полином, polynomial_div ще върне ( {}, dividend )
+        # и тогава това означава делене на 0
+        if not poly2 or all(abs(c) < 1e-14 for c in poly2.values()):
             print("Error: Division by zero polynomial is not allowed.")
             return
 
-        # Division algorithm
-        dividend = poly1.copy()
-        divisor = poly2.copy()
-        quotient = {}
-
-        while dividend and max(dividend.keys()) >= max(divisor.keys()):
-            lead_degree_dividend = max(dividend.keys())
-            lead_coeff_dividend = dividend[lead_degree_dividend]
-
-            lead_degree_divisor = max(divisor.keys())
-            lead_coeff_divisor = divisor[lead_degree_divisor]
-
-            degree_diff = lead_degree_dividend - lead_degree_divisor
-            coeff_quotient = lead_coeff_dividend / lead_coeff_divisor
-
-            quotient[degree_diff] = coeff_quotient
-
-            # Subtract the product of divisor and current term of quotient from dividend
-            for degree, coeff in divisor.items():
-                term_degree = degree + degree_diff
-                term_coeff = coeff * coeff_quotient
-                dividend[term_degree] = dividend.get(term_degree, 0) - term_coeff
-                if abs(dividend[term_degree]) < 1e-10:  # Clean up near-zero values
-                    del dividend[term_degree]
-
-        # Format quotient and remainder
         quotient_str = self.format_polynomial(quotient)
-        remainder_str = self.format_polynomial(dividend)
+        remainder_str = self.format_polynomial(remainder)
         print(f"Quotient: {quotient_str}")
         print(f"Remainder: {remainder_str}")
+
     
     def multiply_polynomial_by_int(self):
         poly = self.input_polynomial("Enter the polynomial you want to multiply:")
@@ -235,8 +250,33 @@ class AlgebraCalc:
             result = int(round(result))
         print(f"P({x_val}) = {result}")
     
+    # We will be using Euclidean algorithm. gcd(A,B)=gcd(B,R), where R is the reminder of A / B. 
+    # We stop when one of the polynomials is 0. Than the other is the GCD
     def gcd_of_polynomials(self):
-        print("Functionality: Find GCD of two polynomials")
+        poly1 = self.input_polynomial("Enter the first polynomial: ")
+        poly2 = self.input_polynomial("Enter the second polynomial: ")
+        
+        # If both poly are zero, gcd is 0.
+        if (not poly1 or all(abs(c) < 1e-14 for c in poly1.values())) and \
+        (not poly2 or all(abs(c) < 1e-14 for c in poly2.values())):
+            print("Both polynomials are 0; GCD: 0")
+            return
+        
+        # The Euclidean loop
+        a = poly1
+        b = poly2
+        while True:            
+            if not b or all(abs(c) < 1e-14 for c in b.values()):
+                # b is the zero polynomial => gcd is a
+                gcd_poly = a
+                gcd_str = self.format_polynomial(gcd_poly)
+                print(f"GCD: {gcd_str}")
+                return
+            
+            # else, compute remainder of a / b
+            _, remainder = self.polynomial_div(a, b)
+            a = b
+            b = remainder
     
     def vietas_formulas(self):
         print("Functionality: Vieta's formulas")
