@@ -279,7 +279,51 @@ class AlgebraCalc:
             b = remainder
     
     def vietas_formulas(self):
-        print("Functionality: Vieta's formulas")
+        poly = self.input_polynomial("Enter the polynomial (degree >= 1) to apply Vieta's formulas:")
+        if not poly or max(poly.keys()) == 0:
+            print("The polynomial has degree 0. Vieta's formulas are not applicable.")
+            return
+        
+        # Find the highest degree n
+        n = max(poly.keys())
+        # Build a coefficient list: a_n, a_{n-1}, ..., a_0
+        # For degrees that don't appear in the dictionary, the coefficient is 0.
+        # We'll store them in a list such that coeffs[i] = a_i, 
+        # so that a_n = coeffs[n], a_0 = coeffs[0].
+        coeffs = []
+        for deg in range(n + 1):
+            coeffs.append(poly.get(deg, 0.0))
+        
+        # Leading coefficient a_n
+        a_n = coeffs[n]
+        if abs(a_n) < 1e-14:
+            print("The leading coefficient is 0 (or near 0). Please re-check your polynomial.")
+            return
+        # Print out each Vieta’s relation
+        # For k from 1 to n, the sum of products of the roots taken k at a time is:
+        # (-1)^k * (a_{n-k} / a_n)
+        # We can loop k in [1..n].
+        print(f"Polynomial degree: {n}\n")
+        print("Vieta's Formulas relations:")
+        for k in range(1, n + 1):
+            # a_{n-k} means coeffs[n-k]
+            a_n_minus_k = coeffs[n - k] if (n - k) >= 0 else 0
+            # sign factor is (-1)^k
+            sign_factor = (-1)**k
+            # value of the sum/product
+            vieta_value = sign_factor * (a_n_minus_k / a_n)
+            if abs(vieta_value - round(vieta_value)) < 1e-14:
+                vieta_value = int(round(vieta_value))
+            if k == 1:
+                description = "Sum of the roots"
+            elif k == n:
+                description = f"Product of all {n} roots"
+            else:
+                description = f"Sum of products of the roots taken {k} at a time"            
+            print(f"  - {description} (k={k}): {vieta_value}")
+        print()
+
+
     
     def decompose_polynomial(self):
         print("Functionality: Polynomial decomposition and finding rational roots")
