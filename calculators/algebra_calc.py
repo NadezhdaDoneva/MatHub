@@ -200,7 +200,22 @@ class AlgebraCalc:
         print(f"Remainder: {remainder_str}")
     
     def multiply_polynomial_by_int(self):
-        print("Functionality: Multiply polynomial by an integer")
+        poly = self.input_polynomial("Enter the polynomial you want to multiply:")
+        scalar_str = input("Enter the rational (or integer) scalar you want to multiply by >> ")
+        
+        try:
+            scalar = float(eval(scalar_str))
+        except Exception:
+            print("Invalid input. Please enter a valid rational or integer number.")
+            return
+        
+        # Умножаваме всеки коефициент по скалара
+        result = {}
+        for degree, coeff in poly.items():
+            result[degree] = coeff * scalar
+        result_str = self.format_polynomial(result)
+        print(f"Resulting Polynomial: {result_str}")
+
     
     def evaluate_polynomial(self):
         print("Functionality: Evaluate polynomial by given x")
