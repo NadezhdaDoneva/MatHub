@@ -40,6 +40,61 @@ class AlgebraCalc:
             else:
                 print("Invalid choice. Please try again.")
 
+    def format_polynomial(self, polynomial: dict) -> str:
+        """Връща стринг от полинома, който му е бил подаден, форматиран првилно"""
+        # Празен речник
+        if not polynomial or all(abs(coeff) < 1e-14 for coeff in polynomial.values()):
+            return "0"
+        # Сортираме по низходяща степен
+        sorted_terms = sorted(polynomial.items(), key=lambda x: -x[0])
+        result_parts = []
+        for i, (degree, coeff) in enumerate(sorted_terms):
+            # Пропускаме много малки коеф
+            if abs(coeff) < 1e-14:
+                continue
+
+            # Форматиране на знака: 
+            # първият термин го пишем без водещ '+' ако е положителен
+            sign_str = ""
+            if i > 0:
+                # Ако не сме на първия термин, слагаме +/-
+                sign_str = " + " if coeff >= 0 else " - "
+            else:
+                # Първи термин е отрицателен
+                if coeff < 0:
+                    sign_str = "-"
+            
+            # Взимаме абсолютната стойност, защото вече сме показали знака горе (ако трябва)
+            abs_coeff = abs(coeff)
+            # Строим частта, която отговаря на коефициента и степента
+            if degree == 0:
+                # Свободен член
+                term_str = f"{abs_coeff}"
+            # Ако степента е 1, не пишем 1; 2.5 -> 2.5x, а не 2.5x^1
+            elif degree == 1:
+                # За да не пишем 1х, а само х
+                if abs_coeff == 1:
+                    term_str = "x"
+                else:
+                    term_str = f"{abs_coeff}x"
+            # x^n (n>=2)
+            else:
+                if abs_coeff == 1:
+                    term_str = f"x^{degree}"
+                else:
+                    term_str = f"{abs_coeff}x^{degree}"
+            
+            # Ако имаме integer стойност в abs_coeff (2.0), да го покажем като int (2)
+            if isinstance(abs_coeff, float) and abs_coeff.is_integer():
+                term_str = term_str.replace(f"{abs_coeff}", str(int(abs_coeff)))
+            # Добавяме знака и термина към общия списък
+            result_parts.append(sign_str + term_str)
+        
+        # Съединяваме result_parts. Те съдържат вече в себе си " + " или " - ", форматираме и връщаме.
+        polynomial_str = "".join(result_parts)
+        polynomial_str = polynomial_str.strip()
+        return polynomial_str
+
     def input_polynomial(self, prompt):
         print(prompt)
         degree = int(input("Enter degree of your polynomial >> "))
@@ -66,10 +121,9 @@ class AlgebraCalc:
             result[degree] = result.get(degree, 0) + coeff
 
         # Format result
-        sorted_result = sorted(result.items(), key=lambda x: -x[0])  # Sort by degree descending
-        result_str = " + ".join(f"{'' if abs(coeff) == 1 and degree != 0 else int(coeff) if coeff.is_integer() else coeff}x^{degree}" if degree != 0 else f"{int(coeff) if coeff.is_integer() else coeff}"
-                                 for degree, coeff in sorted_result if coeff != 0).replace("+ -", "- ").replace("1x", "x").replace("-1x", "-x")
+        result_str = self.format_polynomial(result)
         print(f"Resulting Polynomial: {result_str}")
+
     
     def subtract_polynomials(self):
         print("\nSubtracting Two Polynomials")
@@ -84,9 +138,7 @@ class AlgebraCalc:
             result[degree] = result.get(degree, 0) - coeff
 
         # Format result
-        sorted_result = sorted(result.items(), key=lambda x: -x[0])  # Sort by degree descending
-        result_str = " + ".join(f"{'' if abs(coeff) == 1 and degree != 0 else int(coeff) if coeff.is_integer() else coeff}x^{degree}" if degree != 0 else f"{int(coeff) if coeff.is_integer() else coeff}"
-                                 for degree, coeff in sorted_result if coeff != 0).replace("+ -", "- ").replace("1x", "x").replace("-1x", "-x")
+        result_str = self.format_polynomial(result)
         print(f"Resulting Polynomial: {result_str}")
     
     def multiply_polynomials(self):
@@ -103,9 +155,7 @@ class AlgebraCalc:
                 result[new_degree] = result.get(new_degree, 0) + new_coeff
 
         # Format result
-        sorted_result = sorted(result.items(), key=lambda x: -x[0])  # Sort by degree descending
-        result_str = " + ".join(f"{'' if abs(coeff) == 1 and degree != 0 else int(coeff) if coeff.is_integer() else coeff}x^{degree}" if degree != 0 else f"{int(coeff) if coeff.is_integer() else coeff}"
-                                 for degree, coeff in sorted_result if coeff != 0).replace("+ -", "- ").replace("1x", "x").replace("-1x", "-x")
+        result_str = self.format_polynomial(result)
         print(f"Resulting Polynomial: {result_str}")
     
     def divide_polynomials(self):
@@ -144,16 +194,10 @@ class AlgebraCalc:
                     del dividend[term_degree]
 
         # Format quotient and remainder
-        sorted_quotient = sorted(quotient.items(), key=lambda x: -x[0])
-        quotient_str = " + ".join(f"{'' if abs(coeff) == 1 and degree != 0 else int(coeff) if coeff.is_integer() else coeff}x^{degree}" if degree != 0 else f"{int(coeff) if coeff.is_integer() else coeff}"
-                                    for degree, coeff in sorted_quotient if coeff != 0).replace("+ -", "- ").replace("1x", "x").replace("-1x", "-x")
-
-        sorted_remainder = sorted(dividend.items(), key=lambda x: -x[0])
-        remainder_str = " + ".join(f"{'' if abs(coeff) == 1 and degree != 0 else int(coeff) if coeff.is_integer() else coeff}x^{degree}" if degree != 0 else f"{int(coeff) if coeff.is_integer() else coeff}"
-                                    for degree, coeff in sorted_remainder if coeff != 0).replace("+ -", "- ").replace("1x", "x").replace("-1x", "-x")
-
-        print(f"Quotient: {quotient_str if quotient else '0'}")
-        print(f"Remainder: {remainder_str if dividend else '0'}")
+        quotient_str = self.format_polynomial(quotient)
+        remainder_str = self.format_polynomial(dividend)
+        print(f"Quotient: {quotient_str}")
+        print(f"Remainder: {remainder_str}")
     
     def multiply_polynomial_by_int(self):
         print("Functionality: Multiply polynomial by an integer")
