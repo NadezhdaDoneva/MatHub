@@ -57,8 +57,7 @@ class GeomCalc:
             print("6. Construct the equations of the altitudes, medians, and angle bisectors in a triangle")
             print("7. Equation of the tangent to a given parabola at a given point")
             print("8. Intersection points of a parabola and a line")
-            print("9. Determine the type of quadrilateral formed by four lines")
-            print("10. Exit")
+            print("9. Exit")
 
             choice = input("Enter your choice (1-10): ")
 
@@ -73,14 +72,12 @@ class GeomCalc:
             elif choice == '5':
                 self.find_line_intersection()
             elif choice == '6':
-                self.construct_triangle_equations()
+                self.construct_triangle_altitudes()
             elif choice == '7':
                 self.tangent_to_parabola()
             elif choice == '8':
                 self.parabola_line_intersection()
             elif choice == '9':
-                self.determine_quadrilateral_type()
-            elif choice == '10':
                 print("Exiting the program...")
                 break
             else:
@@ -242,7 +239,84 @@ class GeomCalc:
         B_perp = -A
         C_perp = (A * point.y) - (B * point.x)
         return Line(A_perp, B_perp, C_perp)
+    
+    @staticmethod
+    def compute_line_intersection(line1, line2, tolerance=1e-9):
+        """ Finds the intersection point of two lines."""
+        determinant = line1.A * line2.B - line2.A * line1.B
+        if abs(determinant) < tolerance:
+            return None  # Parallel or identical lines
+        x = (line2.B * (-line1.C) - line1.B * (-line2.C)) / determinant
+        y = (line1.A * (-line2.C) - line2.A * (-line1.C)) / determinant
+        return Point(x, y)
+    
+    @staticmethod
+    def compute_line_from_points(point1, point2):
+        """ Returns the equation of a line passing through two points in Ax + By + C = 0 format."""
+        if point1.x == point2.x:
+            return Line(1, 0, -point1.x)  # Vertical line x = constant
+        slope = (point2.y - point1.y) / (point2.x - point1.x)
+        intercept = point1.y - slope * point1.x
+        return Line(-slope, 1, -intercept)
+    
+    @staticmethod
+    def compute_triangle_altitude(triangle, opposite_point):
+        """ Computes the equation of the altitude"""
+        if opposite_point == triangle.point1:
+            point1c, point2 = triangle.point2, triangle.point3
+        elif opposite_point == triangle.point2:
+            point1c, point2 = triangle.point1, triangle.point3
+        elif opposite_point == triangle.point3:
+            point1c, point2 = triangle.point1, triangle.point2
+        else:
+            print("Error: opposite_point is not a vertex of the triangle.")
+            return None
+        line = GeomCalc.compute_line_from_points(point1c, point2)
+        altitude = GeomCalc.compute_perpendicular_line(line, opposite_point)
+        return altitude
 
+    @staticmethod
+    def compute_tangent_to_parabola(parabola, point):
+        """ Computes the equation of the tangent line to a paarabola at a given point. """
+        # Ensure the point lies on the parabola
+        expected_y = parabola.a * point.x ** 2 + parabola.b * point.x + parabola.c
+        if abs(expected_y - point.y) > 1e-9:
+            print("Error: The given point does not lie on the parabola.")
+            return None
+        # Compute the derivative at x (dy/dx = 2ax + b)
+        slope = 2 * parabola.a * point.x + parabola.b
+        # Use the point-slope formula to get the equation: y - y1 = m(x - x1)
+        C = point.y - slope * point.x
+        return Line(-slope, 1, -C)  # Convert to Ax + By + C = 0 format
+    
+    @staticmethod
+    def compute_parabola_line_intersection(parabola, line):
+        # Express y in terms of x: y = (-Ax - C) / B
+        if line.B == 0:
+            print("Error: Vertical lines are not currently handled.")
+            return None
+        # Substitute into the parabola equation: ax^2 + bx + c = (-Ax - C) / B
+        A, B, C = line.A, line.B, line.C
+        a, b, c = parabola.a, parabola.b, parabola.c
+        # Form a quadratic equation: ax^2 + bx + c = (-Ax - C) / B
+        new_a = a
+        new_b = b + (A / B)
+        new_c = c + (C / B)
+        # Solve the quadratic equation: new_a x^2 + new_b x + new_c = 0
+        discriminant = new_b**2 - 4 * new_a * new_c
+        if discriminant < 0:
+            return []  # No real solutions, no intersection points
+        elif discriminant == 0:
+            x = -new_b / (2 * new_a)
+            y = (-A * x - C) / B
+            return [Point(x, y)]  # One intersection point (tangent)
+        else:
+            x1 = (-new_b + discriminant**0.5) / (2 * new_a)
+            x2 = (-new_b - discriminant**0.5) / (2 * new_a)
+            y1 = (-A * x1 - C) / B
+            y2 = (-A * x2 - C) / B
+            return [Point(x1, y1), Point(x2, y2)]  # Two intersection points
+    
     # Interactive methods
     def check_point_on_line(self):
         line, point = self.get_line_and_point_interactive()
@@ -274,21 +348,61 @@ class GeomCalc:
         return new_line
 
     def find_line_intersection(self):
-        print("Functionality: Find the intersection of two lines")
-        # Implementation goes here
+        line1_name = input("Enter the name of the first line: ")
+        line2_name = input("Enter the name of the second line: ")
+        line1 = self.get_line(line1_name)
+        line2 = self.get_line(line2_name)
+        if line1 is None:
+            print(f"Line '{line1_name}' does not exist.")
+            return None
+        if line2 is None:
+            print(f"Line '{line2_name}' does not exist.")
+            return None
+        intersection = self.compute_line_intersection(line1, line2)
+        if intersection is None:
+            print("The lines are parallel and do not intersect.")
+        else:
+            print(f"Intersection point: {intersection}")
+        return intersection
 
-    def construct_triangle_equations(self):
-        print("Functionality: Construct the equations of heights, medians, and bisectors of a triangle")
-        # Implementation goes here
+    def construct_triangle_altitudes(self):
+        triangle_name = input("Enter the name of the triangle: ")
+        triangle = self.get_triangle(triangle_name)
+        if triangle is None:
+            print(f"Triangle '{triangle_name}' does not exist.")
+            return None
+        altitude1 = self.compute_triangle_altitude(triangle, triangle.point3)
+        altitude2 = self.compute_triangle_altitude(triangle, triangle.point1)
+        altitude3 = self.compute_triangle_altitude(triangle, triangle.point2)
+        print(f"Altitude 1 equation: {altitude1}")
+        print(f"Altitude 2 equation: {altitude2}")
+        print(f"Altitude 3 equation: {altitude3}")
+        return altitude1, altitude2, altitude3
 
     def tangent_to_parabola(self):
-        print("Functionality: Derive an equation of the tangent to the given parabola at the given point")
-        # Implementation goes here
+        parabola_name = input("Enter the name of the parabola: ")
+        point_name = input("Enter the name of the point: ")
+        parabola = self.get_parabola(parabola_name)
+        point = self.get_point(point_name)
+        if parabola is None or point is None:
+            return
+        tangent = self.compute_tangent_to_parabola(parabola, point)
+        if tangent:
+            print(f"Tangent line equation: {tangent.A}x + {tangent.B}y + {tangent.C} = 0")
+            self.store_new_line_interactive(tangent)
 
     def parabola_line_intersection(self):
-        print("Functionality: Derive points of intersection of a parabola and a line")
-        # Implementation goes here
+        parabola_name = input("Enter the name of the parabola: ")
+        line_name = input("Enter the name of the line: ")
+        parabola = self.get_parabola(parabola_name)
+        line = self.get_line(line_name)
+        if parabola is None or line is None:
+            return
+        intersections = self.compute_parabola_line_intersection(parabola, line)
+        if not intersections:
+            print("No real intersection points.")
+        elif len(intersections) == 1:
+            print(f"One intersection point: {intersections[0]}")
+        else:
+            print(f"Two intersection points: {intersections[0]} and {intersections[1]}")
 
-    def determine_quadrilateral_type(self):
-        print("Functionality: Determine the type of quadrilateral four given lines form")
-        # Implementation goes here
