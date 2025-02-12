@@ -111,73 +111,58 @@ class GeomCalc:
 
     
     def add_point(self, name, x, y):
-        """Adds a point if it doesn't already exist."""
         if name in self.points:
             return f"A point named '{name}' already exists! Please use a different name."
-        
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return "Invalid coordinates. Please enter numeric values."
         self.points[name] = Point(x, y)
         return f"Created point '{name}' at coordinates ({x}, {y})."
 
     def add_line(self, name, A, B, C):
-        """Adds a line if it doesn't already exist."""
         if name in self.lines:
             return f"A line named '{name}' already exists! Please use a different name."
-        
+        if not all(isinstance(i, (int, float)) for i in [A, B, C]):
+            return "Invalid coefficients. Please enter numeric values."
         self.lines[name] = Line(A, B, C)
         return f"Created line '{name}': {A}x + {B}y + {C} = 0."
 
     def add_parabola(self, name, a, b, c):
-        """Adds a parabola if it doesn't already exist."""
         if name in self.parabolas:
             return f"A parabola named '{name}' already exists! Please use a different name."
-        
+        if not all(isinstance(i, (int, float)) for i in [a, b, c]):
+            return "Invalid coefficients. Please enter numeric values."
         self.parabolas[name] = Parabola(a, b, c)
         return f"Created parabola '{name}': y = {a}x^2 + {b}x + {c}."
 
     def add_triangle(self, name, p1_name, p2_name, p3_name):
-        """Creates a triangle from three existing points."""
         if name in self.triangles:
             return f"A triangle named '{name}' already exists! Please use a different name."
-
-        if p1_name not in self.points or p2_name not in self.points or p3_name not in self.points:
+        if any(p not in self.points for p in [p1_name, p2_name, p3_name]):
             return "One or more points do not exist. Please create them first."
-
         p1, p2, p3 = self.points[p1_name], self.points[p2_name], self.points[p3_name]
         self.triangles[name] = Triangle(p1, p2, p3)
         return f"Created triangle '{name}' from points ({p1_name}, {p2_name}, {p3_name})."
 
     def create_point(self):
         name = input("Enter a name for the point: ")
-        try:
-            x = float(input("Enter x-coordinate: "))
-            y = float(input("Enter y-coordinate: "))
-        except ValueError:
-            print("Invalid coordinates. Please try again.")
-            return
+        x = input("Enter x-coordinate: ")
+        y = input("Enter y-coordinate: ")
         print(self.add_point(name, x, y))
     
     def create_line(self):
         name = input("Enter a name for the line: ")
         print("Enter the coefficients A, B, C for the equation Ax + By + C = 0:")
-        try:
-            A = float(input("A: "))
-            B = float(input("B: "))
-            C = float(input("C: "))
-        except ValueError:
-            print("Invalid coefficients. Please try again.")
-            return
+        A = input("A: ")
+        B = input("B: ")
+        C = input("C: ")
         print(self.add_line(name, A, B, C))
 
     def create_parabola(self):
         name = input("Enter a name for the parabola: ")
         print("Enter the coefficients a, b, c for the equation y = ax^2 + bx + c:")
-        try:
-            a = float(input("a: "))
-            b = float(input("b: "))
-            c = float(input("c: "))
-        except ValueError:
-            print("Invalid coefficients. Please try again.")
-            return
+        a = input("a: ")
+        b = input("b: ")
+        c = input("c: ")
         print(self.add_parabola(name, a, b , c))
 
     def create_triangle(self):
