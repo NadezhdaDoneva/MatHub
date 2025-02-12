@@ -5,7 +5,7 @@ from calculators.geom_calc import GeomCalc, Point, Line, Parabola, Triangle
 class TestGeomCalc(unittest.TestCase):
     def setUp(self):
         self.geometry = GeomCalc()
-        self.p1 = Point(1, -2)
+        self.p1 = Point(1, -2) #lies on line 1
         self.p2 = Point(2, 2)
         self.line1 = Line(1, -1, -2)
         self.line2 = Line(2, -1, -4)
@@ -13,6 +13,14 @@ class TestGeomCalc(unittest.TestCase):
         self.coincident_line = Line(2, -2, -4)  # Coincident with line1
         self.test_point = Point(3, 5)
         self.triangle = Triangle(Point(0, 0), Point(4, 0), Point(2, 3))
+        self.parabola1 = Parabola(1, -2, 1)  # y = x^2 - 2x + 1
+        self.parabola2 = Parabola(2, -3, -5) # y = 2x^2 - 3x - 5
+        self.point_on_parabola1 = Point(1, 0)
+        self.point_on_parabola2 = Point(2, -3)
+        self.point_off_parabola = Point(0, 3)
+        self.tangent_line = Line(1, -2, -3)
+        self.secant_line = Line(2, -1, -1)  # Intersects at two points
+        self.no_intersection_line = Line(1, 1, 10)  # Doesn't intersect parabola
 
     def test_add_valid_point(self):
         result = self.geometry.add_point("P1", 2, 3)
@@ -178,15 +186,13 @@ class TestGeomCalc(unittest.TestCase):
         self.assertEqual(computed_line.C, expected_line.C)
 
     def test_compute_triangle_altitude_from_base(self):
-        """Test altitude computation from base vertex."""
         altitude = GeomCalc.compute_triangle_altitude(self.triangle, self.triangle.point3)
-        expected_altitude = Line(1, 0, -2)  # Perpendicular to x-axis at x = 2
+        expected_altitude = Line(1, 0, -2)
         self.assertEqual(altitude.A, expected_altitude.A)
         self.assertEqual(altitude.B, expected_altitude.B)
         self.assertEqual(altitude.C, expected_altitude.C)
 
     def test_compute_triangle_altitude_from_side(self):
-        """Test altitude from a side vertex (not base)."""
         altitude = GeomCalc.compute_triangle_altitude(self.triangle, self.triangle.point1)
         expected_altitude = Line(1, -1.5, 0)
         self.assertAlmostEqual(altitude.A, expected_altitude.A)
@@ -194,16 +200,41 @@ class TestGeomCalc(unittest.TestCase):
         self.assertAlmostEqual(altitude.C, expected_altitude.C)
 
     def test_compute_triangle_altitude_invalid_point(self):
-        """Test altitude when the given opposite point is not a triangle vertex."""
         fake_point = Point(10, 10)
         altitude = GeomCalc.compute_triangle_altitude(self.triangle, fake_point)
         self.assertIsNone(altitude, "Altitude should return None for a non-vertex point.")
 
     def test_compute_triangle_altitude_right_triangle(self):
-        """Test altitude in a right triangle where the altitude is a direct perpendicular line."""
-        triangle = Triangle(Point(0, 0), Point(6, 0), Point(3, 4))  # Right triangle
+        triangle = Triangle(Point(0, 0), Point(6, 0), Point(3, 4))
         altitude = GeomCalc.compute_triangle_altitude(triangle, triangle.point3)
-        expected_altitude = Line(1, 0, -3)  # x = 3 (Vertical altitude)
+        expected_altitude = Line(1, 0, -3)
         self.assertEqual(altitude.A, expected_altitude.A)
         self.assertEqual(altitude.B, expected_altitude.B)
         self.assertEqual(altitude.C, expected_altitude.C)
+
+    def test_parabola_line_intersection_no_intersection(self):
+        intersections = self.geometry.compute_parabola_line_intersection(self.parabola1, self.no_intersection_line)
+        self.assertEqual(intersections, [])
+
+    def test_parabola_line_intersection_tangent(self):
+        tangent_x = 1
+        tangent_y = self.parabola1.a * tangent_x ** 2 + self.parabola1.b * tangent_x + self.parabola1.c
+        tangent_point = Point(tangent_x, tangent_y)
+        tangent_line = self.geometry.compute_tangent_to_parabola(self.parabola1, tangent_point)
+        intersections = self.geometry.compute_parabola_line_intersection(self.parabola1, tangent_line)
+        self.assertEqual(len(intersections), 1)
+        self.assertAlmostEqual(intersections[0].x, tangent_x)
+        self.assertAlmostEqual(intersections[0].y, tangent_y)
+
+    def test_parabola_line_intersection_two_points(self):
+        intersections = self.geometry.compute_parabola_line_intersection(self.parabola1, self.secant_line)
+        self.assertEqual(len(intersections), 2)
+        for point in intersections:
+            computed_y = self.parabola1.a * point.x**2 + self.parabola1.b * point.x + self.parabola1.c
+            line_y = (-self.secant_line.A * point.x - self.secant_line.C) / self.secant_line.B
+            self.assertAlmostEqual(computed_y, line_y)
+
+    def test_parabola_vertical_line(self):
+        vertical_line = Line(1, 0, -2)  # x = 2
+        result = self.geometry.compute_parabola_line_intersection(self.parabola1, vertical_line)
+        self.assertIsNone(result)
