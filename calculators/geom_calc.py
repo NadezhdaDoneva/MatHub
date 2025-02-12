@@ -239,7 +239,6 @@ class GeomCalc:
     
     @staticmethod
     def compute_line_intersection(line1, line2, tolerance=1e-9):
-        """ Finds the intersection point of two lines."""
         determinant = line1.A * line2.B - line2.A * line1.B
         if abs(determinant) < tolerance:
             return None  # Parallel or identical lines
@@ -249,7 +248,6 @@ class GeomCalc:
     
     @staticmethod
     def compute_line_from_points(point1, point2):
-        """ Returns the equation of a line passing through two points in Ax + By + C = 0 format."""
         if point1.x == point2.x:
             return Line(1, 0, -point1.x)  # Vertical line x = constant
         slope = (point2.y - point1.y) / (point2.x - point1.x)
@@ -258,7 +256,6 @@ class GeomCalc:
     
     @staticmethod
     def compute_triangle_altitude(triangle, opposite_point):
-        """ Computes the equation of the altitude"""
         if opposite_point == triangle.point1:
             point1c, point2 = triangle.point2, triangle.point3
         elif opposite_point == triangle.point2:
@@ -274,7 +271,6 @@ class GeomCalc:
 
     @staticmethod
     def compute_tangent_to_parabola(parabola, point):
-        """ Computes the equation of the tangent line to a paarabola at a given point. """
         # Ensure the point lies on the parabola
         expected_y = parabola.a * point.x ** 2 + parabola.b * point.x + parabola.c
         if abs(expected_y - point.y) > 1e-9:
