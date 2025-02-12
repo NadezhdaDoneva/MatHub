@@ -57,7 +57,8 @@ class GeomCalc:
             print("6. Construct the equations of the altitudes, medians, and angle bisectors in a triangle")
             print("7. Equation of the tangent to a given parabola at a given point")
             print("8. Intersection points of a parabola and a line")
-            print("9. Exit")
+            print("9. See created objects")
+            print("10. Exit")
 
             choice = input("Enter your choice (1-10): ")
 
@@ -78,6 +79,8 @@ class GeomCalc:
             elif choice == '8':
                 self.parabola_line_intersection()
             elif choice == '9':
+                self.see_created_objects()
+            elif choice == '10':
                 print("Exiting the program...")
                 break
             else:
@@ -106,25 +109,55 @@ class GeomCalc:
             else:
                 print("Invalid choice. Please try again.")
 
+    
+    def add_point(self, name, x, y):
+        """Adds a point if it doesn't already exist."""
+        if name in self.points:
+            return f"A point named '{name}' already exists! Please use a different name."
+        
+        self.points[name] = Point(x, y)
+        return f"Created point '{name}' at coordinates ({x}, {y})."
+
+    def add_line(self, name, A, B, C):
+        """Adds a line if it doesn't already exist."""
+        if name in self.lines:
+            return f"A line named '{name}' already exists! Please use a different name."
+        
+        self.lines[name] = Line(A, B, C)
+        return f"Created line '{name}': {A}x + {B}y + {C} = 0."
+
+    def add_parabola(self, name, a, b, c):
+        """Adds a parabola if it doesn't already exist."""
+        if name in self.parabolas:
+            return f"A parabola named '{name}' already exists! Please use a different name."
+        
+        self.parabolas[name] = Parabola(a, b, c)
+        return f"Created parabola '{name}': y = {a}x^2 + {b}x + {c}."
+
+    def add_triangle(self, name, p1_name, p2_name, p3_name):
+        """Creates a triangle from three existing points."""
+        if name in self.triangles:
+            return f"A triangle named '{name}' already exists! Please use a different name."
+
+        if p1_name not in self.points or p2_name not in self.points or p3_name not in self.points:
+            return "One or more points do not exist. Please create them first."
+
+        p1, p2, p3 = self.points[p1_name], self.points[p2_name], self.points[p3_name]
+        self.triangles[name] = Triangle(p1, p2, p3)
+        return f"Created triangle '{name}' from points ({p1_name}, {p2_name}, {p3_name})."
+
     def create_point(self):
         name = input("Enter a name for the point: ")
-        if name in self.points:
-            print(f"A point named '{name}' already exists! Please use a different name.")
-            return
         try:
             x = float(input("Enter x-coordinate: "))
             y = float(input("Enter y-coordinate: "))
         except ValueError:
             print("Invalid coordinates. Please try again.")
             return
-        self.points[name] = Point(x, y)
-        print(f"Created point '{name}' at coordinates ({x}, {y}).")
+        print(self.add_point(name, x, y))
     
     def create_line(self):
         name = input("Enter a name for the line: ")
-        if name in self.lines:
-            print(f"A line named '{name}' already exists! Please use a different name.")
-            return
         print("Enter the coefficients A, B, C for the equation Ax + By + C = 0:")
         try:
             A = float(input("A: "))
@@ -133,14 +166,10 @@ class GeomCalc:
         except ValueError:
             print("Invalid coefficients. Please try again.")
             return
-        self.lines[name] = Line(A, B, C)
-        print(f"Created line '{name}': {A}x + {B}y + {C} = 0.")
+        print(self.add_line(name, A, B, C))
 
     def create_parabola(self):
         name = input("Enter a name for the parabola: ")
-        if name in self.parabolas:
-            print(f"A parabola named '{name}' already exists! Please use a different name.")
-            return
         print("Enter the coefficients a, b, c for the equation y = ax^2 + bx + c:")
         try:
             a = float(input("a: "))
@@ -149,32 +178,15 @@ class GeomCalc:
         except ValueError:
             print("Invalid coefficients. Please try again.")
             return
-        self.parabolas[name] = Parabola(a, b, c)
-        print(f"Created parabola '{name}': y = {a}x^2 + {b}x + {c}.")
+        print(self.add_parabola(name, a, b , c))
 
     def create_triangle(self):
         name = input("Enter a name for the triangle: ")
-        if name in self.triangles:
-            print(f"A triangle named '{name}' already exists! Please use a different name.")
-            return
         print("Let's construct a triangle from existing points.")
         p1_name = input("Enter the name of the first point: ")
-        if p1_name not in self.points:
-            print(f"Point '{p1_name}' does not exist. Please create it first.")
-            return
         p2_name = input("Enter the name of the second point: ")
-        if p2_name not in self.points:
-            print(f"Point '{p2_name}' does not exist. Please create it first.")
-            return
         p3_name = input("Enter the name of the third point: ")
-        if p3_name not in self.points:
-            print(f"Point '{p3_name}' does not exist. Please create it first.")
-            return
-        p1 = self.points[p1_name]
-        p2 = self.points[p2_name]
-        p3 = self.points[p3_name]
-        self.triangles[name] = Triangle(p1, p2, p3)
-        print(f"Created triangle '{name}' from points ({p1_name}, {p2_name}, {p3_name}).")
+        print(self.add_triangle(name, p1_name, p2_name, p3_name))
 
     #The following funcs return the object if it exists, otherwise - None
     def get_point(self, point_name):
@@ -405,4 +417,14 @@ class GeomCalc:
             print(f"One intersection point: {intersections[0]}")
         else:
             print(f"Two intersection points: {intersections[0]} and {intersections[1]}")
+
+    def see_created_objects(self):
+        print("Points:")
+        print(self.points)
+        print("Lines:")
+        print(self.lines)
+        print("Parabolas:")
+        print(self.parabolas)
+        print("Triangles:")
+        print(self.triangles)
 
