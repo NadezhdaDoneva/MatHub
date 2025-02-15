@@ -22,15 +22,21 @@ class Calculators:
             print("2. Algebra Calculator")
             print("3. Simplex Calculator")
             print("4. Exit")
-            
-            choice = input("Enter your choice (1-4): ")
-            
+            choice = input("Enter your choice (14-4): ")
             if choice == '1':
                 self.geom_calc.menu()
             elif choice == '2':
                 self.algebra_calc.menu()
             elif choice == '3':
-                self.simplex_calc.menu()
+                file_name = input("Enter the name of the file containing the Simplex task: ").strip()
+                task = self.simplex_calc.read_task_from_file(file_name)
+                #file_path = "D:\\Data\\FMI\\Python\\MatHub\\simplex1_task.txt"
+                task = self.simplex_calc.read_task_from_file(file_name)
+                if task:
+                    print("\nTask successfully loaded! Ready to solve.")
+                    self.simplex_calc.solve(task)
+                else:
+                    print("Failed to load task. Please check the file and try again.")
             elif choice == '4':
                 print("Exiting MatHub. Goodbye!")
                 break

@@ -41,7 +41,7 @@ class AlgebraCalc:
                 print("Invalid choice. Please try again.")
 
     #HELPER FUNCTIONS
-    def format_polynomial(self, polynomial: dict) -> str:
+    def format_polynomial(self, polynomial):
         """Връща стринг от полинома, който му е бил подаден, форматиран првилно"""
         # Празен речник
         if not polynomial or all(abs(coeff) < 1e-14 for coeff in polynomial.values()):
@@ -53,7 +53,6 @@ class AlgebraCalc:
             # Пропускаме много малки коеф
             if abs(coeff) < 1e-14:
                 continue
-
             # Форматиране на знака: 
             # първият термин го пишем без водещ '+' ако е положителен
             sign_str = ""
@@ -64,7 +63,6 @@ class AlgebraCalc:
                 # Първи термин е отрицателен
                 if coeff < 0:
                     sign_str = "-"
-            
             # Взимаме абсолютната стойност, защото вече сме показали знака горе (ако трябва)
             abs_coeff = abs(coeff)
             # Строим частта, която отговаря на коефициента и степента
@@ -84,13 +82,11 @@ class AlgebraCalc:
                     term_str = f"x^{degree}"
                 else:
                     term_str = f"{abs_coeff}x^{degree}"
-            
             # Ако имаме integer стойност в abs_coeff (2.0), да го покажем като int (2)
             if isinstance(abs_coeff, float) and abs_coeff.is_integer():
                 term_str = term_str.replace(f"{abs_coeff}", str(int(abs_coeff)))
             # Добавяме знака и термина към общия списък
             result_parts.append(sign_str + term_str)
-        
         # Съединяваме result_parts. Те съдържат вече в себе си " + " или " - ", форматираме и връщаме.
         polynomial_str = "".join(result_parts)
         polynomial_str = polynomial_str.strip()
@@ -103,21 +99,19 @@ class AlgebraCalc:
         for d in range(degree, -1, -1):
             coeff = input(f"Enter coefficient before x^{d} >> ")
             try:
-                polynomial[d] = float(eval(coeff))  # Allow fractional inputs like "3/2"
+                polynomial[d] = float(eval(coeff))
             except Exception:
                 print("Invalid input. Please enter a numeric value.")
-                return self.input_polynomial(prompt)  # Restart input on invalid entry
+                return self.input_polynomial(prompt)  # Restart input if invalid
         return polynomial
     
     def polynomial_div(self, dividend: dict, divisor: dict):
         """ Returns (quotient, remainder) of dividend / divisor using polynomial long division"""
         dividend = dividend.copy()
         divisor = divisor.copy()
-
         # If the divisor is the zero polynomial
         if not divisor or all(abs(c) < 1e-14 for c in divisor.values()):
             return {}, dividend  # quotient={}, remainder=dividend
-        
         quotient = {}
         # While degree(dividend) >= degree(divisor) and dividend is not the zero poly:
         while dividend and max(dividend.keys()) >= max(divisor.keys()):
@@ -143,7 +137,6 @@ class AlgebraCalc:
                 # if near 0, remove
                 if abs(dividend[new_deg]) < 1e-14:
                     del dividend[new_deg]
-
         remainder = dividend
         return quotient, remainder
     
