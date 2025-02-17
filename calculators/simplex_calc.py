@@ -64,9 +64,6 @@ class SimplexCalc:
 
     @staticmethod
     def gauss(row, temp):
-        """
-        Performs element-wise addition of two lists (Gaussian elimination step).
-        """
         for i in range(len(row)):
             row[i] += temp[i]
 

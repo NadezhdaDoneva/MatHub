@@ -45,11 +45,7 @@ class TestAlgebraCalc(unittest.TestCase):
 
     def test_int_divisors_zero(self):
         """If num=0"""
-        result = self.algebra.int_divisors(0)  
-        # Depending on your logic, 
-        # you might decide an integer divisor of 0 is any integer, 
-        # so typically we don't handle it. 
-        # We'll just check it doesn't crash:
+        result = self.algebra.int_divisors(0)
         self.assertIsInstance(result, list)
 
     def test_is_zero_poly_true(self):

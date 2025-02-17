@@ -3,6 +3,7 @@ import unittest
 import tempfile
 import os
 
+
 class TestSimplexCalc(unittest.TestCase):
     def setUp(self):
         self.calc = SimplexCalc()

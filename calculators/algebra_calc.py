@@ -14,9 +14,7 @@ class AlgebraCalc:
             print("8. Vieta's formulas")
             print("9. Polynomial decomposition")
             print("10. Return to Main Menu")
-            
             choice = input("Enter your choice (1-10): ")
-            
             if choice == '1':
                 self.add_polynomials()
             elif choice == '2':
@@ -148,10 +146,9 @@ class AlgebraCalc:
             if num % i == 0:
                 divisors.append(i)
                 divisors.append(-i)
-        # ensure uniqueness: 
         return list(set(divisors))
     
-    def evaluate_poly(self, poly: dict, x_val):
+    def evaluate_poly(self, poly, x_val):
         result = 0.0
         for degree, coeff in poly.items():
             result += coeff * (x_val ** degree)
@@ -163,11 +160,10 @@ class AlgebraCalc:
             return True
         return all(abs(c) < 1e-14 for c in poly.values())
 
-    def is_constant_poly(self, poly: dict) -> bool:
-        """Check if polynomial is just a nonzero constant (degree 0)."""
-        # clean up
+    def is_constant_poly(self, poly):
+        """(degree 0)."""
         if not poly:
-            return True  # or it's zero
+            return True
         if len(poly) == 1 and 0 in poly:
             # Only key is 0 => a constant
             return True
@@ -187,8 +183,7 @@ class AlgebraCalc:
         Attempts to find a single rational root of 'poly'. 
         If found, factors out (x - root) (possibly multiple times),
         appends 'root' to 'roots_list' for each repetition,
-        and returns True.
-        If no root is found, returns False.
+        and returns True. If no root is found, returns False.
         """
         # Clean up zero coef
         self.clean_zero_terms(poly)
@@ -223,7 +218,6 @@ class AlgebraCalc:
                 val = self.evaluate_poly(poly, candidate)
                 if abs(val) < 1e-14:
                     # It's a root, Factor out (x - candidate)
-                    # We do polynomial division in a loop while candidate is indeed a root
                     while True:
                         # Check again in case of repeated root
                         val_check = self.evaluate_poly(poly, candidate)
@@ -234,7 +228,6 @@ class AlgebraCalc:
                             # Update poly to the quotient
                             poly.clear()
                             poly.update(quotient)
-                            
                             roots_list.append(candidate)
                         else:
                             # candidate no longer divides
@@ -263,7 +256,7 @@ class AlgebraCalc:
         result_str = self.format_polynomial(result_poly)
         print(f"Resulting Polynomial: {result_str}")
 
-    def subtract_polynomials_logic(self, poly1: dict, poly2: dict) -> dict:
+    def subtract_polynomials_logic(self, poly1, poly2):
         """ Subtract two polynomials: poly1 - poly2. Returns a dict: degree -> coefficient. """
         result = {}
         for degree, coeff in poly1.items():
@@ -331,19 +324,16 @@ class AlgebraCalc:
     def multiply_polynomial_by_int(self):
         poly = self.input_polynomial("Enter the polynomial you want to multiply:")
         scalar_str = input("Enter the rational (or integer) scalar you want to multiply by >> ")
-        
         try:
             scalar = float(eval(scalar_str))
         except Exception:
             print("Invalid input. Please enter a valid rational or integer number.")
             return
-        
-        # Умножаваме всеки коефициент по скалара
         result_dict = self.multiply_polynomial_by_scalar_logic(poly, scalar)
         result_str = self.format_polynomial(result_dict)
         print(f"Resulting Polynomial: {result_str}")
 
-    def evaluate_polynomial_logic(self, poly: dict, x_val: float) -> float:
+    def evaluate_polynomial_logic(self, poly, x_val):
         """ Evaluates the polynomial dict at x_val and returns the result."""
         val = self.evaluate_poly(poly, x_val)
         #round near-integers:
@@ -362,13 +352,12 @@ class AlgebraCalc:
         result = self.evaluate_polynomial_logic(poly, x_val)
         print(f"P({x_val}) = {result}")
 
-    def gcd_of_polynomials_logic(self, poly1: dict, poly2: dict) -> dict:
+    def gcd_of_polynomials_logic(self, poly1, poly2):
         """We will be using Euclidean algorithm. gcd(A,B)=gcd(B,R), where R is the reminder of A / B. We stop when one of the polynomials is 0. Than the other is the GCD"""
         # If both are zero:
         if (not poly1 or all(abs(c) < 1e-14 for c in poly1.values())) and \
         (not poly2 or all(abs(c) < 1e-14 for c in poly2.values())):
             return {}  # GCD is 0 => empty polynomial
-
         a = poly1.copy()
         b = poly2.copy()
         while True:
@@ -399,7 +388,6 @@ class AlgebraCalc:
         a_n = coeffs[n]
         if abs(a_n) < 1e-14:
             return None
-        
         vieta_dict = {}
         # for k in 1..n:
         for k in range(1, n + 1):
@@ -418,7 +406,6 @@ class AlgebraCalc:
         if vieta_dict is None:
             print("The polynomial is degree 0 or leading coeff near 0. Not applicable.")
             return
-        
         n = max(poly.keys())
         print(f"Polynomial degree: {n}\n")
         print("Vieta's Formulas relations:")

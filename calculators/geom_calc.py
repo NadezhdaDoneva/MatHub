@@ -59,9 +59,7 @@ class GeomCalc:
             print("8. Intersection points of a parabola and a line")
             print("9. See created objects")
             print("10. Exit")
-
             choice = input("Enter your choice (1-10): ")
-
             if choice == '1':
                 self.create_objects_menu()
             elif choice == '2':
@@ -94,7 +92,6 @@ class GeomCalc:
             print("3. Create a new parabola")
             print("4. Create a new triangle (using existing points)")
             print("5. Return to the main menu")
-
             choice = input("Enter your choice (1-5): ")
             if choice == '1':
                 self.create_point()
@@ -109,7 +106,6 @@ class GeomCalc:
             else:
                 print("Invalid choice. Please try again.")
 
-    
     def add_point(self, name, x, y):
         if name in self.points:
             return f"A point named '{name}' already exists! Please use a different name."
